@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,9 +7,11 @@
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    printf("No files to print\n");
+    printf("wunzip: file1 [file2 ...]\n");
     exit(1);
   }
+
+  // file descriptor that represents an open file in the operating system(0
   int out = -1;
   bool append = 0;
   // detect > or >>
@@ -42,17 +45,27 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  FILE *fp = fopen(argv[1], "r");
+  // Now decompress files
 
-  if (fp == NULL) {
-    printf("Cannot open file\n");
-    exit(1);
+  // multiple files
+  for (int i = 1; i < argc; i++) {
+    FILE *ptr = fopen(argv[i], "r");
+
+    if (ptr == NULL) {
+      printf("Cannot open file\n");
+      continue;
+    }
+    char c;
+    int cnt = 0;
+
+    while (fread(&cnt, sizeof(int), 1, ptr) == 1 &&
+           fread(&c, sizeof(char), 1, ptr) == 1) {
+      for (int j = 0; j < cnt; j++) {
+        putchar(c);
+      }
+    }
+    fclose(ptr);
   }
 
-  char buff[100];
-  while (fgets(buff, 100, fp)) {
-    printf("%s", buff);
-  }
-  fclose(fp);
-  printf("\n");
+  return 0;
 }
