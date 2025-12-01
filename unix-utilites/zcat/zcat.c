@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    printf("No files to compress\n");
+    printf("No files to print\n");
     exit(1);
   }
   int out = -1;
