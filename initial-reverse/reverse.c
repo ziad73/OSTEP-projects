@@ -52,6 +52,12 @@ int main(int argc, char *argv[]) {
       lines[cnt] = strdup(buff);
       cnt++;
     }
+
+    // fix missing newline on last line read
+    if (cnt > 0 && lines[cnt - 1][strlen(lines[cnt - 1]) - 1] != '\n') {
+      strcat(lines[cnt - 1], "\n");
+    }
+
     for (int i = cnt - 1; i >= 0; i--) {
       fputs(lines[i], out);
       free(lines[i]);
@@ -61,6 +67,16 @@ int main(int argc, char *argv[]) {
 
   fseek(in, 0, SEEK_END); // EOF
   long pos = ftell(in);
+
+  // handling for missing newline at end
+  if (pos > 0) {
+    fseek(in, -1, SEEK_END);
+    int last = fgetc(in);
+    if (last != '\n') {
+      fputc('\n', out);
+    }
+  }
+
   while (pos > 0) {
     fseek(in, --pos, SEEK_SET); // move back till '\n' then move forward
 
@@ -70,16 +86,18 @@ int main(int argc, char *argv[]) {
     int c = fgetc(in);
 
     if (c == '\n') {
-      long start = ftell(in); // start pos at last line
       int ch;
+      bool line_has_char = 0;
       while ((ch = fgetc(in)) != '\n' && ch != EOF) {
         // printf("%c",(char)ch);
         // putchar(ch); // converts int ASCII into char then print it
         fputc(ch, out); // putchar but for file to handle output files
+        line_has_char = 1;
       }
       // putchar('\n');
-      fputc('\n', out); // cursor ++
-      fseek(in, start, SEEK_SET);
+      if (line_has_char)
+        fputc('\n', out);
+      fseek(in, pos, SEEK_SET);
     }
   }
 
